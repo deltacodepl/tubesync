@@ -1,0 +1,71 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tubesync
+  name: tubesync-db
+spec:
+  selector:
+    matchLabels:
+      app: tubesync-db
+  template:
+    metadata:
+      labels:
+        app: tubesync-db
+    spec:
+      containers:
+      - name: database
+        image: postgres:13.8-bullseye
+        resources:
+          limits:
+            memory: "300Mi"
+            cpu: "200m"
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "tubesync"
+        - name: POSTGRES_USER
+          value: "tubesync"
+        - name: POSTGRES_DB
+          value: "tubesync"
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: tubesync
+  name: "tubesync-db-service"
+spec:
+  selector:
+    app: tubesync-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: tubesync
+  name: tubesync-migrator
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: migrator
+        image: tubesync:latest
+        command:
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "250m"
+        env:
+        - name: "TUBESYNC_DB_HOST"
+          value: "tubesync-db-service"
+      initContainers:
+      - name: wait-for-db
+        image: toschneck/wait-for-it:latest
+        command: ["./wait-for-it.sh", "-t", "60", "tubesync-db-service:5432"]
+      restartPolicy: Never
+
+---

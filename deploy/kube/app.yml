@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tubesync
+  name: tubesync-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tubesync-app
+  template:
+    metadata:
+      labels:
+        app: tubesync-app
+    spec:
+      containers:
+      - name: app
+        image: tubesync:latest
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: api-port
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        env:
+        - name: TUBESYNC_HOST
+          value: "0.0.0.0"
+        - name: TUBESYNC_WORKERS_COUNT
+          value: "10"
+        - name: TUBESYNC_DB_HOST
+          value: "tubesync-db-service"
+        - name: TUBESYNC_REDIS_HOST
+          value: "tubesync-redis-service"
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "100m"
+        ports:
+        - containerPort: 8000
+          name: api-port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: tubesync
+  name: tubesync-app-service
+spec:
+  selector:
+    app: tubesync-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: api-port
+    name: api-port
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tubesync-app
+  namespace: tubesync
+  labels:
+    name: tubesync-app
+spec:
+  rules:
+  - host: tubesync.local
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: tubesync-app-service
+            port:
+              name: api-port
+
+---

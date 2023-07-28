@@ -1,0 +1,72 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: tubesync:${TUBESYNC_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      TUBESYNC_HOST: 0.0.0.0
+      TUBESYNC_DB_HOST: tubesync-db
+      TUBESYNC_DB_PORT: 5432
+      TUBESYNC_DB_USER: tubesync
+      TUBESYNC_DB_PASS: tubesync
+      TUBESYNC_DB_BASE: tubesync
+      TUBESYNC_REDIS_HOST: tubesync-redis
+
+  db:
+    image: postgres:13.8-bullseye
+    hostname: tubesync-db
+    environment:
+      POSTGRES_PASSWORD: "tubesync"
+      POSTGRES_USER: "tubesync"
+      POSTGRES_DB: "tubesync"
+    volumes:
+    - tubesync-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U tubesync
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: tubesync:${TUBESYNC_VERSION:-latest}
+    restart: "no"
+    environment:
+      TUBESYNC_DB_HOST: tubesync-db
+      TUBESYNC_DB_PORT: 5432
+      TUBESYNC_DB_USER: tubesync
+      TUBESYNC_DB_PASS: tubesync
+      TUBESYNC_DB_BASE: tubesync
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "tubesync-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  tubesync-db-data:
+    name: tubesync-db-data
