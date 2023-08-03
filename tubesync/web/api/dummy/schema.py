@@ -1,19 +1,21 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class DummyModelDTO(BaseModel):
+class ChannelModelDTO(BaseModel):
     """
-    DTO for dummy models.
+    DTO for channel model.
 
-    It returned when accessing dummy models from the API.
+    It returned when accessing channel from the API.
     """
 
     id: int
     name: str
+    channel_id: str
     model_config = ConfigDict(from_attributes=True)
 
 
-class DummyModelInputDTO(BaseModel):
+class ChannelModelInputDTO(BaseModel):
     """DTO for creating new dummy model."""
 
     name: str
+    channel_id: str

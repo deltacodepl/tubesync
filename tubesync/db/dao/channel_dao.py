@@ -5,7 +5,7 @@ from psycopg.rows import class_row
 from psycopg_pool import AsyncConnectionPool
 
 from tubesync.db.dependencies import get_db_pool
-from tubesync.db.models.channels_model import ChannelModel
+from tubesync.db.models.channel import ChannelModel
 
 
 class ChannelDAO:
@@ -17,7 +17,7 @@ class ChannelDAO:
     ):
         self.db_pool = db_pool
 
-    async def create_channel_model(self, name: str, channel_id: str) -> None:
+    async def create_channel(self, name: str, channel_id: str) -> None:
         """
         Creates new channel in a database.
 
@@ -27,7 +27,8 @@ class ChannelDAO:
         async with self.db_pool.connection() as connection:
             async with connection.cursor(binary=True) as cur:
                 await cur.execute(
-                    "INSERT INTO channels (name) VALUES (%(name)s);",
+                    "INSERT INTO channels "
+                    "(name, channel_id) VALUES (%(name, channel_id)s);",
                     params={
                         "name": name,
                         "channel_id": channel_id,
@@ -48,7 +49,8 @@ class ChannelDAO:
                 row_factory=class_row(ChannelModel),
             ) as cur:
                 res = await cur.execute(
-                    "SELECT id, name FROM channels LIMIT %(limit)s OFFSET %(offset)s;",
+                    "SELECT id, name, "
+                    "channel_id FROM channels LIMIT %(limit)s OFFSET %(offset)s;",
                     params={
                         "limit": limit,
                         "offset": offset,

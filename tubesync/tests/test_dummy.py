@@ -16,7 +16,7 @@ async def test_creation(
     dbpool: AsyncConnectionPool,
 ) -> None:
     """Tests dummy instance creation."""
-    url = fastapi_app.url_path_for("create_channel_model")
+    url = fastapi_app.url_path_for("create_channel")
     test_name = uuid.uuid4().hex
     response = await client.put(
         url,
@@ -39,7 +39,7 @@ async def test_getting(
     """Tests dummy instance retrieval."""
     dao = ChannelDAO(dbpool)
     test_name = uuid.uuid4().hex
-    await dao.create_channel_model(name=test_name)
+    await dao.create_channel(name=test_name)
     url = fastapi_app.url_path_for("get_dummy_models")
     response = await client.get(url)
     dummies = response.json()
