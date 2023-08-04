@@ -83,7 +83,9 @@ async def create_tables(connection: AsyncConnection[Any]) -> None:
     :param connection: connection to database.
     """
     await connection.execute(
-        "CREATE TABLE dummy (" "id SERIAL primary key," "name VARCHAR(200)" ");",
+        "CREATE TABLE channels "
+        "(" "id SERIAL PRIMARY KEY," "name VARCHAR(200) NOT NULL,"
+        "channel_id VARCHAR(200) NOT NULL" ");",
     )
     pass  # noqa: WPS420
 

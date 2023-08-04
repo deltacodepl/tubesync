@@ -7,7 +7,6 @@ class ChannelModelDTO(BaseModel):
 
     It returned when accessing channel from the API.
     """
-
     id: int
     name: str
     channel_id: str
@@ -15,7 +14,6 @@ class ChannelModelDTO(BaseModel):
 
 
 class ChannelModelInputDTO(BaseModel):
-    """DTO for creating new dummy model."""
-
+    """DTO for creating new channel model."""
     name: str
     channel_id: str

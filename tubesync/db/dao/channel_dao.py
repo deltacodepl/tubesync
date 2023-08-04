@@ -28,7 +28,7 @@ class ChannelDAO:
             async with connection.cursor(binary=True) as cur:
                 await cur.execute(
                     "INSERT INTO channels "
-                    "(name, channel_id) VALUES (%(name, channel_id)s);",
+                    "(name, channel_id) VALUES (%(name)s, %(channel_id)s);",
                     params={
                         "name": name,
                         "channel_id": channel_id,
@@ -75,11 +75,11 @@ class ChannelDAO:
             ) as cur:
                 if name is not None:
                     res = await cur.execute(
-                        "SELECT id, name FROM channels WHERE name=%(name)s;",
+                        "SELECT id, name, channel_id FROM channels WHERE name=%(name)s;",
                         params={
                             "name": name,
                         },
                     )
                 else:
-                    res = await cur.execute("SELECT id, name FROM channels;")
+                    res = await cur.execute("SELECT id, name, channel_id FROM channels;")
                 return await res.fetchall()
