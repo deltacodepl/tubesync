@@ -22,6 +22,7 @@ from prometheus_fastapi_instrumentator.instrumentation import (
 
 from tubesync.services.redis.lifetime import init_redis, shutdown_redis
 from tubesync.settings import settings
+from tubesync.db.create_schema import create_tables
 
 
 async def _setup_db(app: FastAPI) -> None:
@@ -32,6 +33,11 @@ async def _setup_db(app: FastAPI) -> None:
     """
     app.state.db_pool = psycopg_pool.AsyncConnectionPool(conninfo=str(settings.db_url))
     await app.state.db_pool.wait()
+    try:
+        async with app.state.db_pool.connection() as connection:
+            create_tables(connection)
+    except Exception as e:
+        print(f"Create tables error {e}")
 
 
 def setup_opentelemetry(app: FastAPI) -> None:  # pragma: no cover
