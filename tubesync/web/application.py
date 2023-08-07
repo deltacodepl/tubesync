@@ -28,6 +28,13 @@ def get_app() -> FastAPI:
     register_startup_event(app)
     register_shutdown_event(app)
 
+    @app.on_event("startup")
+    def test_print():
+        """
+        Test print
+        """
+        print("Hello world")
+
     # Main router for the API.
     app.include_router(router=api_router, prefix="/api")
 

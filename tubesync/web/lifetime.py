@@ -2,6 +2,7 @@ import logging
 from typing import Awaitable, Callable
 
 import psycopg_pool
+from psycopg import DatabaseError
 from fastapi import FastAPI
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -36,7 +37,7 @@ async def _setup_db(app: FastAPI) -> None:
     try:
         async with app.state.db_pool.connection() as connection:
             create_tables(connection)
-    except Exception as e:
+    except (Exception, DatabaseError) as e:
         print(f"Create tables error {e}")
 
 
