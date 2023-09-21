@@ -6,4 +6,4 @@ class ChannelModel(BaseModel):
     id: int
     name: str
     channel_id: str
-    # subscribed: bool
+    subscribed: bool

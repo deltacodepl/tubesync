@@ -17,12 +17,16 @@ class ChannelDAO:
     ):
         self.db_pool = db_pool
 
-    async def create_channel(self, name: str, channel_id: str) -> None:
+    async def create_channel(self,
+                             name: str,
+                             channel_id: str,
+                             subscribed: bool) -> None:
         """
         Creates new channel in a database.
 
         :param name: name of a channel.
         :param channel_id: id of the channel.
+        :param subscribed: state of the channel
         """
         async with self.db_pool.connection() as connection:
             async with connection.cursor(binary=True) as cur:
@@ -32,6 +36,7 @@ class ChannelDAO:
                     params={
                         "name": name,
                         "channel_id": channel_id,
+                        "subscribed": subscribed,
                     },
                 )
 
@@ -49,8 +54,8 @@ class ChannelDAO:
                 row_factory=class_row(ChannelModel),
             ) as cur:
                 res = await cur.execute(
-                    "SELECT id, name, "
-                    "channel_id FROM channels LIMIT %(limit)s OFFSET %(offset)s;",
+                    "SELECT id, name, channel_id, subscribed"
+                    " FROM channels LIMIT %(limit)s OFFSET %(offset)s;",
                     params={
                         "limit": limit,
                         "offset": offset,
@@ -75,11 +80,13 @@ class ChannelDAO:
             ) as cur:
                 if name is not None:
                     res = await cur.execute(
-                        "SELECT id, name, channel_id FROM channels WHERE name=%(name)s;",
+                        "SELECT id, name, channel_id, subscribed FROM channels WHERE "
+                        "name=%(name)s;",
                         params={
                             "name": name,
                         },
                     )
                 else:
-                    res = await cur.execute("SELECT id, name, channel_id FROM channels;")
+                    res = await cur.execute("SELECT id, name, channel_id, subscribed "
+                                            "FROM channels;")
                 return await res.fetchall()
